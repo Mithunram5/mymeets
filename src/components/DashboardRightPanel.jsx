@@ -1,39 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { format, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval, subDays, addDays, isSameMonth } from "date-fns";
+import dayjs from "dayjs";
+import axios from "axios";
 import CreateMeeting from "../pages/CreateMeeting";
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined';
 import { Button, Typography } from "@mui/material";
 import EventCard from './EventCard';
-
-// Dummy meetings data
-const dummyMeetings = [
-  {
-    id: '1',
-    title: "BOS Meeting",
-    start: new Date().setHours(10, 30),
-    end: new Date().setHours(11, 30),
-    type: "bos",
-    color: "purple"
-  },
-  {
-    id: '2',
-    title: "Grievance Meeting",
-    start: new Date().setHours(10, 30),
-    end: new Date().setHours(11, 30),
-    type: "grievance",
-    color: "orange"
-  },
-  {
-    id: '3',
-    title: "Academic Council",
-    start: new Date().setHours(14, 30),
-    end: new Date().setHours(15, 30),
-    type: "academic",
-    color: "blue"
-  }
-];
 
 const getRelevantTimeWindow = (meetings, currentTime) => {
   const currentMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
@@ -97,39 +71,6 @@ const getTimeSlots = (startMinutes, endMinutes) => {
   }
 
   return slots;
-};
-
-const filterAndEnhanceMeetings = (meetings, currentTime) => {
-  const currentMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
-  
-  // Filter meetings within the visible time range
-  const timeSlots = getRelevantTimeSlots(meetings, currentTime);
-  const visibleStartMinutes = timeSlots[0].minutes;
-  const visibleEndMinutes = timeSlots[timeSlots.length - 1].minutes;
-  
-  const visibleMeetings = meetings.filter(meeting => {
-    const meetingStart = new Date(meeting.start);
-    const meetingEnd = new Date(meeting.end);
-    const startMinutes = meetingStart.getHours() * 60 + meetingStart.getMinutes();
-    const endMinutes = meetingEnd.getHours() * 60 + meetingEnd.getMinutes();
-    
-    return startMinutes <= visibleEndMinutes && endMinutes >= visibleStartMinutes;
-  });
-
-  // Find the nearest upcoming meeting
-  const upcomingMeetings = visibleMeetings.filter(meeting => {
-    const meetingStart = new Date(meeting.start);
-    const meetingStartMinutes = meetingStart.getHours() * 60 + meetingStart.getMinutes();
-    return meetingStartMinutes > currentMinutes;
-  });
-
-  upcomingMeetings.sort((a, b) => new Date(a.start) - new Date(b.start));
-  const nearestMeetingId = upcomingMeetings[0]?.id;
-
-  return visibleMeetings.map(meeting => ({
-    ...meeting,
-    isNearest: meeting.id === nearestMeetingId
-  }));
 };
 
 const findOverlappingMeetings = (meetings) => {
@@ -204,44 +145,43 @@ const DashboardRightPanel = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showCreateMeeting, setShowCreateMeeting] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [meetings, setMeetings] = useState(dummyMeetings);
+  const [meetings, setMeetings] = useState([]);
 
-  // Fetch meetings from the API
-  useEffect(() => {
-    const fetchMeetings = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          console.error('No authentication token found');
-          return;
+  // Fetch meetings from the API using the approach from Dashboard.jsx
+  const fetchMeetings = async () => {
+    try {
+      const token = localStorage.getItem('token'); // Ensure token is saved at login
+      const response = await axios.get('http://localhost:5000/api/meetings/get-user-meetings', {
+        headers: {
+          Authorization: `Bearer ${token}`,
         }
+      });
 
-        const response = await fetch('http://localhost:5000/api/meetings', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
+      if (response.data.success) {
+        const formattedMeetings = response.data.meetings.map(meeting => ({
+          id: meeting.id,
+          title: meeting.meeting_name,
+          start: new Date(meeting.start_time),
+          end: new Date(meeting.end_time),
+          type: meeting.role || "meeting",
+          color: getRandomColor(meeting.id),
+          description: meeting.meeting_description,
+          priority: meeting.priority,
+          status: meeting.meeting_status
+        }));
 
-        if (response.ok) {
-          const data = await response.json();
-          // Transform the API response to match our expected format
-          const formattedMeetings = data.map(meeting => ({
-            id: meeting.id.toString(),
-            title: meeting.meeting_name,
-            start: new Date(meeting.start_time),
-            end: new Date(meeting.end_time),
-            type: meeting.type || "meeting",
-            color: getRandomColor(meeting.id),
-            description: meeting.meeting_description
-          }));
-          setMeetings([...formattedMeetings, ...dummyMeetings]);
-        }
-      } catch (error) {
-        console.error('Failed to fetch meetings:', error);
+        setMeetings(formattedMeetings);
       }
-    };
+    } catch (error) {
+      console.error("Failed to fetch meetings:", error);
+    }
+  };
 
+  useEffect(() => {
     fetchMeetings();
+    // Refresh meetings every minute
+    const interval = setInterval(fetchMeetings, 60000);
+    return () => clearInterval(interval);
   }, []);
 
   // Function to get a consistent color based on meeting ID
@@ -374,7 +314,6 @@ const DashboardRightPanel = () => {
 
   return (
     <>
-
       {showCreateMeeting && (
         <div 
           style={{
@@ -477,7 +416,10 @@ const DashboardRightPanel = () => {
                   onClick={() => setSelectedDate(day)}
                 >
                   {format(day, 'd')}
-                  {meetings.some(meeting => isSameDay(meeting.date, day)) && (
+                  {meetings.some(meeting => {
+                    const meetingDate = new Date(meeting.start);
+                    return isSameDay(meetingDate, day);
+                  }) && (
                     <div style={{ width: '3px', height: '3px', backgroundColor: '#e1a942', borderRadius: '50%', position: 'absolute', bottom: '2px' }} />
                   )}
                 </div>
@@ -622,9 +564,7 @@ const DashboardRightPanel = () => {
               </div>
             </div>
         </div>
-          
       </div>
-
     </>
   );
 };
