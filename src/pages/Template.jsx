@@ -65,9 +65,24 @@ export default function Template() {
   useEffect(() => {
     const fetchMembers = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/templates/users');
+        const token = localStorage.getItem('token');
+        if (!token) {
+          console.error('No authentication token found');
+          return;
+        }
+
+        const response = await fetch('http://localhost:5000/api/templates/users', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
         const data = await response.json();
-        setAllMembers(data);
+        
+        // Get current user's ID from token
+        const currentUserId = JSON.parse(atob(token.split('.')[1])).userId;
+        // Filter out the current user from the members list
+        const filteredMembers = data.filter(member => member.id !== currentUserId);
+        setAllMembers(filteredMembers);
       } catch (error) {
         console.error('Failed to fetch members:', error);
       }

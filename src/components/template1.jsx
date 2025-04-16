@@ -78,6 +78,26 @@ export default function Cmeeting({ onBack }) {
       const token = localStorage.getItem('token');
       if (!token) {
         console.error('No authentication token found');
+        setLoading(false);
+        return;
+      }
+
+      // Validate required fields
+      if (!selectedDateTime) {
+        alert('Please select a date and time for the meeting');
+        setLoading(false);
+        return;
+      }
+
+      if (!selectedMeeting) {
+        alert('Please enter a meeting name');
+        setLoading(false);
+        return;
+      }
+
+      if (!priorityType) {
+        alert('Please select a priority level');
+        setLoading(false);
         return;
       }
 
@@ -104,9 +124,24 @@ export default function Cmeeting({ onBack }) {
       const start = dayjs(`${datePart} ${startTimeStr}`, "DD-MM-YYYY h:mm A");
       const end = dayjs(`${datePart} ${endTimeStr}`, "DD-MM-YYYY h:mm A");
 
-      // Format to MySQL DATETIME format
+      // Ensure dates are valid
+      if (!start.isValid() || !end.isValid()) {
+        alert('Invalid date or time format');
+        setLoading(false);
+        return;
+      }
+
+      // Handle case where end time is earlier than start time (across midnight)
+      let endFormatted;
       const startFormatted = start.format("YYYY-MM-DD HH:mm:ss");
-      const endFormatted = end.format("YYYY-MM-DD HH:mm:ss");
+      
+      // Check if end time is before start time (e.g., 11:30 PM to 12:00 AM)
+      if (end.isBefore(start)) {
+        // Add one day to end date
+        endFormatted = end.add(1, 'day').format("YYYY-MM-DD HH:mm:ss");
+      } else {
+        endFormatted = end.format("YYYY-MM-DD HH:mm:ss");
+      }
 
       console.log("start_time:", startFormatted);
       console.log("end_time:", endFormatted);
@@ -119,22 +154,30 @@ export default function Cmeeting({ onBack }) {
         template_id: templateId, // Include both formats to be safe
         start_time: startFormatted || formatDate(now),
         end_time: endFormatted,
-        venue_id: selectedVenue?.id,
-        priority: priorityType,
-        repeat_type: repeatValue,
+        venue_id: selectedVenue?.id || null,
+        priority: priorityType ? priorityType.toLowerCase() : 'medium', // Default to medium if not set
+        repeat_type: repeatValue || null,
         // Format roles data for the API
-        roles: roles.map(role => ({
+        roles: roles.filter(role => role.role && role.members.length > 0).map(role => ({
           role: role.role,
           members: role.members.map(member => member.id)
         })),
         // Format points data for the API
-        points: discussionPoints.map(point => ({
+        points: discussionPoints.filter(point => point.point).map(point => ({
           point: point.point,
           point_name: point.point // Include both formats to be safe
         }))
       };
 
       console.log('Sending meeting data:', JSON.stringify(meetingData, null, 2));
+      
+      // Basic validation
+      if (new Date(meetingData.start_time) >= new Date(meetingData.end_time)) {
+        console.error('Start time must be before end time');
+        alert('Invalid meeting time: Start time must be before end time');
+        setLoading(false);
+        return;
+      }
 
       // Call the API to create the meeting
       const response = await axios.post(
@@ -658,7 +701,7 @@ export default function Cmeeting({ onBack }) {
 
         // Set priority
         if (template.priority_type) {
-          setPriorityType(template.priority_type);
+          setPriorityType(template.priority_type.toLowerCase());
         }
 
         // Set repeat value

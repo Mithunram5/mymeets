@@ -44,6 +44,26 @@ const formatTime = (time) => {
   return `${time.hour}:${time.minute.toString().padStart(2, "0")} ${time.amPm}`;
 };
 
+
+
+
+const validateTimeRange = (fromTime, toTime) => {
+  if (!fromTime || !toTime) return false;
+  
+  // Convert times to minutes for comparison
+  const fromMinutes = fromTime.hour * 60 + fromTime.minute + (fromTime.amPm === 'PM' ? 720 : 0);
+  const toMinutes = toTime.hour * 60 + toTime.minute + (toTime.amPm === 'PM' ? 720 : 0);
+  
+  // Edge cases:
+  // 1. Same time (invalid)
+  // 2. Crossing midnight (PM to AM next day is valid)
+  // 3. End time before start time (invalid)
+  if (fromMinutes === toMinutes) return false;
+  if (fromTime.amPm === 'PM' && toTime.amPm === 'AM') return true;
+  
+  return toMinutes > fromMinutes;
+};
+
 const calculateEndTime = (startTime, durationMinutes) => {
   let hour = startTime.hour;
   let minute = startTime.minute;
@@ -156,6 +176,12 @@ const DateTimePicker = ({ onConfirm }) => {
       setActiveTab(1); // Switch to time tab
       return;
     }
+    
+    if (!validateTimeRange(fromTime, toTime)) {
+      setError("End time must be after start time");
+      setActiveTab(1); // Switch to time tab
+      return;
+    }
 
     const formattedDateTime = `${selectedDate.format("DD-MM-YYYY")} && ${formatTime(fromTime)} - ${formatTime(toTime)}`;
     onConfirm(formattedDateTime);
@@ -206,25 +232,64 @@ const DateTimePicker = ({ onConfirm }) => {
               sx={{ 
                 width: "100%",
                 py: 0,
-                '& .MuiDayCalendar-header, & .MuiDayCalendar-weekContainer': {
-                  margin: '2px 0',
-                },
                 '& .MuiPickersCalendarHeader-root': {
                   paddingLeft: 1,
                   paddingRight: 1,
                   marginTop: 0,
                   marginBottom: 0,
                   minHeight: 40,
+                  justifyContent: 'center',
                 },
                 '& .MuiPickersCalendarHeader-label': {
                   fontSize: '0.9rem',
+                  textAlign: 'center',
+                },
+                '& .MuiDayCalendar-header': {
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(7, 1fr)',
+                  justifyContent: 'space-around',
+                  margin: '2px 0',
+                  width: '100%',
+                },
+                '& .MuiDayCalendar-weekContainer': {
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(7, 1fr)',
+                  justifyContent: 'space-around',
+                  margin: '2px 0',
+                  width: '100%',
+                },
+                '& .MuiPickersDay-root': {
+                  margin: '0 auto',
+                  maxWidth: '32px',
+                  maxHeight: '32px',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
                 },
                 '& .MuiPickersDay-root.Mui-selected': {
                   backgroundColor: theme.palette.primary.main,
                   color: 'white',
                 },
                 '& .MuiTypography-root': {
-                  fontSize: '0.75rem'
+                  fontSize: '0.75rem',
+                  textAlign: 'center',
+                },
+                '& .MuiDayCalendar-slideTransition': {
+                  minHeight: 200,
+                  width: '100%',
+                },
+                '& .MuiDayCalendar-monthContainer': {
+                  width: '100%',
+                },
+                '@media (max-width: 400px)': {
+                  '& .MuiPickersDay-root': {
+                    maxWidth: '28px',
+                    maxHeight: '28px',
+                    fontSize: '0.7rem',
+                  },
+                  '& .MuiTypography-root': {
+                    fontSize: '0.7rem',
+                  }
                 }
               }}
             />
@@ -251,10 +316,12 @@ const DateTimePicker = ({ onConfirm }) => {
                 p: 1, 
                 display: 'flex', 
                 alignItems: 'center',
+                justifyContent: 'center',
                 cursor: 'pointer',
-                border: `1px solid ${theme.palette.divider}`,
+                minWidth: 120,
+                border: `1px solid ${fromTime && toTime && !validateTimeRange(fromTime, toTime) ? theme.palette.error.main : theme.palette.divider}`,
                 '&:hover': {
-                  borderColor: theme.palette.primary.main,
+                  borderColor: fromTime && toTime && !validateTimeRange(fromTime, toTime) ? theme.palette.error.main : theme.palette.primary.main,
                 }
               }}
             >
@@ -273,10 +340,12 @@ const DateTimePicker = ({ onConfirm }) => {
                 p: 1, 
                 display: 'flex', 
                 alignItems: 'center',
+                justifyContent: 'center',
                 cursor: 'pointer',
-                border: `1px solid ${theme.palette.divider}`,
+                minWidth: 120,
+                border: `1px solid ${fromTime && toTime && !validateTimeRange(fromTime, toTime) ? theme.palette.error.main : theme.palette.divider}`,
                 '&:hover': {
-                  borderColor: theme.palette.primary.main,
+                  borderColor: fromTime && toTime && !validateTimeRange(fromTime, toTime) ? theme.palette.error.main : theme.palette.primary.main,
                 }
               }}
             >
@@ -360,13 +429,20 @@ const DateTimePicker = ({ onConfirm }) => {
           {editingTime === 'from' ? 'Edit Start Time' : 'Edit End Time'}
         </DialogTitle>
         <DialogContent sx={{ pt: 0 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            gap: 1,
+            mt: 2,
+            mb: 1
+          }}>
             <TextField
               select
               label="Hour"
               value={tempTime.hour}
               onChange={(e) => setTempTime({...tempTime, hour: parseInt(e.target.value)})}
-              sx={{ mr: 1, width: 70 }}
+              sx={{ width: 90 }}
               size="small"
             >
               {HOURS.map((hour) => (
@@ -381,7 +457,7 @@ const DateTimePicker = ({ onConfirm }) => {
               label="Minute"
               value={tempTime.minute}
               onChange={(e) => setTempTime({...tempTime, minute: parseInt(e.target.value)})}
-              sx={{ mr: 1, width: 70 }}
+              sx={{ width: 90 }}
               size="small"
             >
               {MINUTES.map((minute) => (
@@ -396,7 +472,7 @@ const DateTimePicker = ({ onConfirm }) => {
               label="AM/PM"
               value={tempTime.amPm}
               onChange={(e) => setTempTime({...tempTime, amPm: e.target.value})}
-              sx={{ width: 70 }}
+              sx={{ width: 90 }}
               size="small"
             >
               <MenuItem value="AM">AM</MenuItem>

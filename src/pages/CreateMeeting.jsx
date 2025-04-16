@@ -17,7 +17,7 @@ export default function CreateMeeting({ onUseTemplate, onClose }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const filters = ["ALL", "M Team", "Academic", "COA", "Skill" , "Business"];
+  const filters = ["ALL", "M Team", "Academic", "COA", "Skill", "Business"];
   
   // Fetch templates from API
   useEffect(() => {
@@ -167,8 +167,26 @@ export default function CreateMeeting({ onUseTemplate, onClose }) {
 
   return (
 
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center"}}>
-        <Card sx={{ width: 500, borderRadius: 2, p: 2, bgcolor: "white" }}>
+      <Box sx={{ 
+        display: "flex", 
+        justifyContent: "center", 
+        alignItems: "center",
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        zIndex: 1300
+      }}>
+        <Card sx={{ 
+          width: { xs: "90%", sm: "80%", md: "70%", lg: "60%" }, 
+          maxWidth: "800px",
+          maxHeight: "90vh",
+          borderRadius: 2, 
+          p: 2, 
+          bgcolor: "white",
+        }}>
 
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", p: 1 }}>
             <Typography sx={{ color: "#3D3939", fontWeight: "bold" }}>Select Template</Typography>
@@ -181,13 +199,45 @@ export default function CreateMeeting({ onUseTemplate, onClose }) {
           <hr />
 
           <Box sx={{ display: "flex", gap: "10px", my: 2 }}>
-            <Box sx={{ display: "flex", alignItems: "center", width: "100%", p: "2px 4px", border: "1px solid #ccc", borderRadius: "6px" }}>
-              <Search sx={{ ml: 1 }} />
-              <InputBase sx={{ ml: 1, flex: 1 }} placeholder="Search Your Meeting..." value={tsearch} onChange={(e) => setTsearch(e.target.value)} />
+            <Box sx={{ 
+              display: "flex", 
+              alignItems: "center", 
+              width: "100%", 
+              p: "2px 4px", 
+              border: "1px solid #e0e0e0", 
+              borderRadius: "8px",
+              transition: "all 0.2s ease",
+              '&:hover': {
+                boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                borderColor: "#bdbdbd"
+              },
+              '&:focus-within': {
+                borderColor: "#3b82f6",
+                boxShadow: "0 0 0 2px rgba(59,130,246,0.2)"
+              }
+            }}>
+              <Search sx={{ ml: 1, color: "#757575" }} />
+              <InputBase 
+                sx={{ 
+                  ml: 1, 
+                  flex: 1,
+                  '& .MuiInputBase-input': {
+                    padding: "8px 0"
+                  } 
+                }} 
+                placeholder="Search Your Meeting..." 
+                value={tsearch} 
+                onChange={(e) => setTsearch(e.target.value)} 
+              />
             </Box>
           </Box>
 
-          <Box sx={{ display: "flex", gap: "10px", mb: 2 }}>
+          <Box sx={{ 
+            display: "flex", 
+            flexWrap: "wrap", 
+            gap: "10px", 
+            mb: 2 
+          }}>
             {filters.map((label) => (
               <Chip
                 key={label}
@@ -197,8 +247,10 @@ export default function CreateMeeting({ onUseTemplate, onClose }) {
                   borderRadius: "8px",
                   backgroundColor: label === selectedFilter ? "#3b82f6" : "#EFF8FF",
                   color: label === selectedFilter ? "#fff" : "#3b82f6",
+                  margin: "2px",
                   "&:hover": {
                     backgroundColor: label === selectedFilter ? "#3b82f6" : "#EFF8FF",
+                    boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
                   },
                 }}
                 onClick={() => setSelectedFilter(label)}
@@ -219,12 +271,26 @@ export default function CreateMeeting({ onUseTemplate, onClose }) {
               component={Paper} 
               sx={{ 
                 boxShadow: "none",
-                maxHeight: "285px",
+                maxHeight: "400px",
                 overflow: "auto",
+                borderRadius: "8px",
+                border: "1px solid #f0f0f0",
                 "&::-webkit-scrollbar": {
-                  display: "none"
+                  width: "6px",
+                  height: "6px"
                 },
-                scrollbarWidth: "none", // Firefox
+                "&::-webkit-scrollbar-track": {
+                  background: "#f1f1f1",
+                  borderRadius: "10px"
+                },
+                "&::-webkit-scrollbar-thumb": {
+                  background: "#c1c1c1",
+                  borderRadius: "10px",
+                  "&:hover": {
+                    background: "#a8a8a8"
+                  }
+                },
+                scrollbarWidth: "thin", // Firefox
                 msOverflowStyle: "none", // IE and Edge
               }}
               onScroll={handleScroll}
@@ -238,7 +304,9 @@ export default function CreateMeeting({ onUseTemplate, onClose }) {
                         bgcolor: 'white',
                         zIndex: 1,
                         position: 'sticky',
-                        top: 0
+                        top: 0,
+                        fontWeight: 600,
+                        borderBottom: '2px solid #f0f0f0'
                       }}
                     ></TableCell>
                     <TableCell
@@ -246,7 +314,9 @@ export default function CreateMeeting({ onUseTemplate, onClose }) {
                         bgcolor: 'white',
                         zIndex: 1,
                         position: 'sticky',
-                        top: 0
+                        top: 0,
+                        fontWeight: 600,
+                        borderBottom: '2px solid #f0f0f0'
                       }}
                     >File Name</TableCell>
                     <TableCell 
@@ -257,7 +327,9 @@ export default function CreateMeeting({ onUseTemplate, onClose }) {
                         bgcolor: 'white',
                         zIndex: 1,
                         position: 'sticky',
-                        top: 0
+                        top: 0,
+                        fontWeight: 600,
+                        borderBottom: '2px solid #f0f0f0'
                       }}
                     >
                       Status
@@ -267,7 +339,8 @@ export default function CreateMeeting({ onUseTemplate, onClose }) {
                           verticalAlign: "middle", 
                           ml: 0.5, 
                           transform: sortOrder === "asc" ? "rotate(180deg)" : "rotate(0deg)",
-                          opacity: sortOrder === null ? 0.5 : 1
+                          opacity: sortOrder === null ? 0.5 : 1,
+                          transition: 'transform 0.2s ease'
                         }} 
                       />
                     </TableCell>
@@ -279,7 +352,9 @@ export default function CreateMeeting({ onUseTemplate, onClose }) {
                         bgcolor: 'white',
                         zIndex: 1,
                         position: 'sticky',
-                        top: 0
+                        top: 0,
+                        fontWeight: 600,
+                        borderBottom: '2px solid #f0f0f0'
                       }}
                     >
                       Category
@@ -289,7 +364,8 @@ export default function CreateMeeting({ onUseTemplate, onClose }) {
                           verticalAlign: "middle", 
                           ml: 0.5, 
                           transform: categorySortOrder === "asc" ? "rotate(180deg)" : "rotate(0deg)",
-                          opacity: categorySortOrder === null ? 0.5 : 1
+                          opacity: categorySortOrder === null ? 0.5 : 1,
+                          transition: 'transform 0.2s ease'
                         }} 
                       />
                     </TableCell>
@@ -297,7 +373,15 @@ export default function CreateMeeting({ onUseTemplate, onClose }) {
                 </TableHead>
                 <TableBody>
                   {displayedFiles.map((file) => (
-                    <TableRow key={file.id}>
+                    <TableRow 
+                      key={file.id}
+                      sx={{
+                        '&:hover': {
+                          backgroundColor: '#f5f9ff'
+                        },
+                        transition: 'background-color 0.2s ease'
+                      }}
+                    >
                       <TableCell padding="checkbox">
                         <Checkbox
                           checked={tselect === file.id}

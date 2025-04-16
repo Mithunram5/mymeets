@@ -123,68 +123,17 @@
   border-radius: 99px;
   z-index: 1;
 }
+-
+/* Tooltip styles removed as requested */
 
-/* Tooltip styles */
-.tooltip {
-  position: absolute;
-  background-color: #fff;
-  padding: 8px 12px;
-  border-radius: 6px;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-  white-space: nowrap;
-  z-index: 1000;
-  font-size: 14px;
-  font-weight: 500;
-  color: #333;
-  top: 50%;
-  left: 100%;
-  transform: translate(10px, -50%);
-  transition: all 0.3s ease;
-  border-left: none;
-  border-right: 3px solid #007bff;
-  pointer-events: none;
-  opacity: 0;
-  visibility: hidden;
-  margin-left: 10px;
-}
-
-.tooltip::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: -6px;
-  transform: translateY(-50%);
-  border-width: 6px 6px 6px 0;
-  border-style: solid;
-  border-color: transparent #fff transparent transparent;
-}
-
-.menu-item:hover .tooltip {
-  opacity: 1;
-  visibility: visible;
-  transform: translate(5px, -50%);
-}
-
-.profile-tooltip {
-  width: auto;
-  min-width: 170px;
-  padding: 10px 14px;
-  transform: translate(10px, -50%);
-  left: 100%;
-}
-
-.menu-item:hover .profile-tooltip {
-  transform: translate(5px, -50%);
-}
-
+/* Profile name and email styles preserved but not in tooltips */
 .profile-name {
-  font-weight: bold;
+  font-weight: 500;
   margin-bottom: 4px;
 }
 
 .profile-email {
-  font-size: 12px;
-  color: #666;
+  font-size: 11px;
 }
 
 /* Logout Button */
@@ -200,9 +149,49 @@
   color: #FF0000 !important;
 }
 
-.logout-button .tooltip {
-  border-right: 3px solid #FF0000;
-  border-top: none;
+/* Modern Profile Tooltip */
+.profile-container {
+  position: relative;
+  margin: 16px 0;
+}
+
+.profile-container:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #FFFFFF;
+  color: #333333;
+  padding: 12px 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: max-content;
+  max-width: 200px;
+  z-index: 1000;
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre;
+  pointer-events: none;
+  opacity: 1;
+  animation: fadeIn 0.3s ease forwards;
+  border-left: 3px solid #007bff;
+  display: block;
+}
+
+/* Dark theme support */
+@media (prefers-color-scheme: dark) {
+  .profile-container:hover::after {
+    background: #2A2A2A;
+    color: #FFFFFF;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Animation for tooltip */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-50%) translateX(10px); }
+  to { opacity: 1; transform: translateY(-50%) translateX(20px); }
 }
 
 /* Sidebar Bottom (Profile Section) */
@@ -215,11 +204,6 @@
   width: 100%;
   border-top: 1px solid #B0BCC5;
   margin-top: auto; /* Allows logout to move based on height */
-}
-
-.profile-container {
-  position: relative;
-  margin: 16px 0;
 }
 
 /* Avatar (optional) */

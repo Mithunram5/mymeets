@@ -68,9 +68,9 @@ export default function VenueTable({ onVenueSelect, onClose }) {
     if (statusSort) {
         sortedVenues.sort((a, b) => {
             if (statusSort === "asc") {
-                return a.status === b.status ? 0 : a.status === "Active" ? -1 : 1;
+                return a.status === b.status ? 0 : a.status === "Available" ? -1 : 1;
             } else {
-                return a.status === b.status ? 0 : a.status === "Active" ? 1 : -1;
+                return a.status === b.status ? 0 : a.status === "Available" ? 1 : -1;
             }
         });
     }
@@ -85,7 +85,7 @@ export default function VenueTable({ onVenueSelect, onClose }) {
     }
 
     return (
-        <Card sx={{ width: 700, borderRadius: 2, p: 2, bgcolor: "white" }}>
+        <Card sx={{ width: { xs: '90%', sm: '80%', md: '70%', lg: 700 }, maxWidth: 700, borderRadius: 2, p: 2, bgcolor: "white" }}>
 
             {/* top */}
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px" }}>
@@ -134,18 +134,6 @@ export default function VenueTable({ onVenueSelect, onClose }) {
                                     />
                                 </TableCell>
                                 <TableCell>Capacity</TableCell>
-                                {/* <TableCell onClick={handlePrioritySort} sx={{ cursor: "pointer" }}>
-                                    Priority
-                                    <KeyboardArrowDown 
-                                    fontSize="small" 
-                                    sx={{ 
-                                        verticalAlign: "middle", 
-                                        ml: 0.5,
-                                        transform: prioritySort === "asc" ? "rotate(180deg)" : "rotate(0deg)" 
-                                    }} 
-                                    />
-                                </TableCell> */}
-                                {/* <TableCell>Action</TableCell> */}
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -155,8 +143,8 @@ export default function VenueTable({ onVenueSelect, onClose }) {
                                         <Checkbox
                                             checked={vselect === venue.id}
                                             onChange={() => handleSel(venue.id)}
-                                            disabled={venue.status != "Active"}
-                                            icon={<span style={{ width: 24, height: 24, borderRadius: "50%", border: "2px solid #D3D3D3", backgroundColor: venue.status != "Active" ? "#DADADA" : "transparent", cursor: venue.status != "Active" ? "not-allowed" : "pointer" }} />}
+                                            disabled={venue.status !== "Available"}
+                                            icon={<span style={{ width: 24, height: 24, borderRadius: "50%", border: "2px solid #D3D3D3", backgroundColor: venue.status != "Available" ? "#DADADA" : "transparent", cursor: venue.status != "Available" ? "not-allowed" : "pointer" }} />}
                                             checkedIcon={
                                                 <span style={{ width: 24, height: 24, borderRadius: "50%", backgroundColor: "#1976D2", display: "flex", alignItems: "center", justifyContent: "center" }}>
                                                     <Check style={{ color: "white", fontSize: 18, alignItems: 'center' }} />
@@ -168,33 +156,13 @@ export default function VenueTable({ onVenueSelect, onClose }) {
 
                                     {/* Status */}
                                     <TableCell>
-                                        <Box sx={{ display: "flex", alignItems: "center", gap: "4px", backgroundColor: venue.status=="Active" ? "#e8f5e9" : "#ffebee", color: venue.status=="Active" ? "#2e7d32" : "#d32f2f", padding: "4px 8px", borderRadius: "16px", fontSize: "12px", fontWeight: 500, width: "fit-content" }}>
-                                            <Box sx={{ width: "5px", height: "5px", borderRadius: "50%", backgroundColor: venue.status=="Active" ? "#2e7d32" : "#d32f2f" }} />
+                                        <Box sx={{ display: "flex", alignItems: "center", gap: "4px", backgroundColor: venue.status=="Available" ? "#e8f5e9" : "#ffebee", color: venue.status=="Available" ? "#2e7d32" : "#d32f2f", padding: "4px 8px", borderRadius: "16px", fontSize: "12px", fontWeight: 500, width: "fit-content" }}>
+                                            <Box sx={{ width: "5px", height: "5px", borderRadius: "50%", backgroundColor: venue.status=="Available" ? "#2e7d32" : "#d32f2f" }} />
                                             {venue.status}
                                         </Box>
                                     </TableCell>
 
                                     <TableCell sx={{ color: '#175CD3' }}>{venue.capacity}</TableCell>
-
-
-                                    {/* <TableCell>
-                                        <Typography
-                                            sx={{ color: "#175CD3", backgroundColor: "#e3f2fd", padding: "4px 8px", borderRadius: "16px", fontSize: "10px", fontWeight: 500, display: "inline-block" }}>
-                                            {venue.priority}
-                                        </Typography>
-                                    </TableCell>
-
-                                    <TableCell>
-                                        {venue.status === "In Active" ? (
-                                            <Typography sx={{ color: "#1A79E6", cursor: "pointer", textDecoration: "underline" }}>
-                                                View
-                                            </Typography>
-                                        ) : (
-                                            <Typography sx={{ color: "#1A79E6", cursor: "pointer", textDecoration: "underline" }}>
-                                                {venue.action}
-                                            </Typography>
-                                        )}
-                                    </TableCell> */}
                                 </TableRow>
                             ))}
                         </TableBody>

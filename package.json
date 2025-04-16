@@ -24,6 +24,7 @@
     "lucide-react": "^0.483.0",
     "primeicons": "^7.0.0",
     "primereact": "^10.9.2",
+    "proptypes": "^1.1.0",
     "quill": "^2.0.3",
     "reac": "^0.0.0",
     "react": "^19.0.0",
